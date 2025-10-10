@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+option go_package = "github.com/sahmad/trip-grpc-go/api/proto;apiv1";
+
+enum BookingStatusPhase {
+  Unspecified = 0;
+  Processing = 1;
+  Confirmed = 2;
+  Cancelled = 3;
+  Departed = 4;
+  Failed = 5;
+}

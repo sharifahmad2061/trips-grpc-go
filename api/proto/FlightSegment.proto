@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+import "City.proto";
+
+option go_package = "github.com/sahmad/trip-grpc-go/api/proto;apiv1";
+
+message FlightSegment {
+  uint64 id = 1;
+  City origin = 2;
+  City destination = 3;
+  google.protobuf.Timestamp local_departure = 4;
+  google.protobuf.Timestamp local_arrival = 5;
+  string flight_number = 6;
+}

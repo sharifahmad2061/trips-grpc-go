@@ -1,0 +1,12 @@
+syntax = "proto3";
+import "CreateTripRequest.proto";
+import "CreateTripResponse.proto";
+import "GetTripByIdRequest.proto";
+import "Trip.proto";
+
+option go_package = "github.com/sahmad/trip-grpc-go/api/proto;apiv1";
+
+service Trips {
+  rpc CreateTrip (CreateTripRequest) returns (CreateTripResponse);
+  rpc GetTripById (GetTripByIdRequest) returns (Trip);
+}

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "BookingStatusPhase.proto";
+import "FlightSlice.proto";
+import "Geo.proto";
+import "ProductType.proto";
+
+option go_package = "github.com/sahmad/trip-grpc-go/api/proto;apiv1";
+
+message BookingInfo {
+  uint64 booking_id = 1;
+  uint64 itinerary_id = 2;
+  google.protobuf.Timestamp booking_start_date = 3;
+  google.protobuf.Timestamp booking_end_date = 4;
+  BookingStatusPhase booking_status_phase = 5;
+  ProductType product_type = 6;
+  Geo geo = 7;
+  repeated FlightSlice flight_slices = 8;
+  string product_id = 9;
+}

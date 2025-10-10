@@ -1,0 +1,9 @@
+syntax = "proto3";
+import "City.proto";
+
+option go_package = "github.com/sahmad/trip-grpc-go/api/proto;apiv1";
+
+message Geo {
+  City start = 1;
+  optional City end = 2;
+}

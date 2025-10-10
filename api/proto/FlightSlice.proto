@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+import "City.proto";
+import "FlightSegment.proto";
+
+option go_package = "github.com/sahmad/trip-grpc-go/api/proto;apiv1";
+
+message FlightSlice {
+  City origin_city = 1;
+  City destination_city = 2;
+  google.protobuf.Timestamp local_departure = 3;
+  google.protobuf.Timestamp local_arrival = 4;
+  repeated FlightSegment flight_segments = 5;
+}

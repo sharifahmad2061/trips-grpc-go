@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option go_package = "github.com/sahmad/trip-grpc-go/api/proto;apiv1";
+
+enum ProductType {
+  Hotel = 0;
+  Flight = 1;
+  Activity = 2;
+}

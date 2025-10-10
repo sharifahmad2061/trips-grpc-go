@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+option go_package = "github.com/sahmad/trip-grpc-go/api/proto;apiv1";
+
+message GetTripByIdRequest {
+  uint64 id = 1;
+}
