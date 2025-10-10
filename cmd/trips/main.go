@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/sharifahmad2061/trip-grpc-go/internal/config"
+)
 
 func main() {
-	fmt.Println("trips")
+	conf := config.Load()
+	fmt.Println(conf)
 }
