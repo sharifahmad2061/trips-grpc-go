@@ -18,3 +18,5 @@ vendor/
 # IDE files
 .idea/
 .vscode/
+
+api/gen/go
