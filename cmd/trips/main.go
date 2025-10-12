@@ -26,11 +26,11 @@ func main() {
 	reflection.Register(server)
 
 	go func() {
+		log.Println("gRPC server is running on port 50051")
 		if err := server.Serve(socket); err != nil {
 			log.Fatalf("failed to serve: %v", err)
-		} else {
-			log.Println("gRPC server is running on port 50051")
 		}
+		log.Println("Server stopped serving")
 	}()
 
 	quit := make(chan os.Signal, 1)
