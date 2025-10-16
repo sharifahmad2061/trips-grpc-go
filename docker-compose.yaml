@@ -1,0 +1,16 @@
+version: "3"
+services:
+  otel-collector:
+    image: images.agodadev.io/dockerhub/otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      - ./config/otel.collector.yaml:/etc/otel/config.yaml
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "9464:9464" # Prometheus metrics
+
+  jaeger:
+    image: images.agodadev.io/dockerhub/jaegertracing/all-in-one
+    ports:
+      - "16686:16686"
+      - "14250"
