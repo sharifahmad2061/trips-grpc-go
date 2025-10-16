@@ -11,6 +11,30 @@ services:
     networks:
       - otel
 
+  prometheus:
+    image: images.agodadev.io/dockerhub/prom/prometheus:latest
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    volumes:
+      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - otel
+
+  grafana:
+    image: images.agodadev.io/dockerhub/grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - otel
+    depends_on:
+      - prometheus
+
   jaeger:
     image: images.agodadev.io/dockerhub/jaegertracing/all-in-one
     environment:
@@ -22,3 +46,6 @@ services:
 
 networks:
   otel:
+
+volumes:
+  grafana-storage:
