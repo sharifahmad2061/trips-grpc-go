@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net"
 	"os"
@@ -9,21 +10,48 @@ import (
 
 	apiv1 "github.com/sharifahmad2061/trip-grpc-go/api/gen/go"
 	"github.com/sharifahmad2061/trip-grpc-go/internal/service"
+	"github.com/sharifahmad2061/trip-grpc-go/internal/telemetry"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/contrib/instrumentation/runtime"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/reflection"
 )
 
 func main() {
 	//conf := config.Load()
 	//fmt.Println(conf)
+
+	// initialize telemetry here (tracing, metrics, etc.)
+	ctx := context.Background()
+	shutdown, err := telemetry.Init(ctx)
+	if err != nil {
+		panic(err)
+	}
+	defer shutdown()
+
+	// logger
+	logger, _ := zap.NewProduction()
+	zap.ReplaceGlobals(logger)
+	grpclog.SetLoggerV2(zapgrpc.NewLogger(logger))
+	logger.Info("Logger initialized")
+
+	// network socket
 	socket, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	server := grpc.NewServer()
+	server := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+	)
 	apiv1.RegisterTripsServer(server, &service.TripsServiceImpl{})
 	reflection.Register(server)
+
+	// start runtime telemetry (memory, GC, etc.) collection
+	_ = runtime.Start()
 
 	go func() {
 		log.Println("gRPC server is running on port 50051")
