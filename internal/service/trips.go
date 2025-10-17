@@ -2,44 +2,74 @@ package service
 
 import (
 	"context"
-	"time"
+	"database/sql"
 
 	apiv1 "github.com/sharifahmad2061/trip-grpc-go/api/gen/go"
+	queries "github.com/sharifahmad2061/trip-grpc-go/internal/db/generated"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type TripsServiceImpl struct {
 	apiv1.UnimplementedTripsServer
+	Db *sql.DB
 }
 
 func (s *TripsServiceImpl) CreateTrip(
 	ctx context.Context,
 	req *apiv1.CreateTripRequest,
 ) (*apiv1.CreateTripResponse, error) {
-	return &apiv1.CreateTripResponse{
-		Id:        1,
+	dbHandle := queries.New(s.Db)
+
+	trip, err := dbHandle.CreateTrip(ctx, queries.CreateTripParams{
 		Name:      req.GetName(),
-		MemberId:  req.GetMemberId(),
-		StartDate: req.StartDate,
-		EndDate:   req.EndDate,
-	}, nil
+		MemberID:  int64(req.GetMemberId()),
+		StartDate: req.GetStartDate().AsTime(),
+		EndDate:   req.GetEndDate().AsTime(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	tripResponse := apiv1.CreateTripResponse{
+		Id:       uint64(trip.ID),
+		Name:     trip.Name,
+		MemberId: uint64(trip.MemberID),
+		StartDate: &timestamppb.Timestamp{
+			Seconds: trip.StartDate.Unix(),
+			Nanos:   int32(trip.StartDate.Nanosecond()),
+		},
+		EndDate: &timestamppb.Timestamp{
+			Seconds: trip.EndDate.Unix(),
+			Nanos:   int32(trip.EndDate.Nanosecond()),
+		},
+	}
+	return &tripResponse, nil
 }
 
 func (s *TripsServiceImpl) GetTripById(
 	ctx context.Context,
 	req *apiv1.GetTripByIdRequest,
 ) (*apiv1.Trip, error) {
-	return &apiv1.Trip{
-		Id:       req.GetId(),
-		Name:     "Sample Trip",
-		MemberId: 12345,
+	dbHandle := queries.New(s.Db)
+
+	trip, err := dbHandle.GetTripByID(ctx, int64(req.GetId()))
+	if err != nil {
+		return nil, err
+	}
+
+	tripResponse := &apiv1.Trip{
+		Id:       uint64(trip.ID),
+		Name:     trip.Name,
+		MemberId: uint64(trip.MemberID),
 		StartDate: &timestamppb.Timestamp{
-			Seconds: time.Now().Unix(),
-			Nanos:   0,
+			Seconds: trip.StartDate.Unix(),
+			Nanos:   int32(trip.StartDate.Nanosecond()),
 		},
 		EndDate: &timestamppb.Timestamp{
-			Seconds: time.Now().Add(24 * time.Hour).Unix(), // Example timestamp
-			Nanos:   0,
+			Seconds: trip.EndDate.Unix(),
+			Nanos:   int32(trip.EndDate.Nanosecond()),
 		},
-	}, nil
+	}
+
+	return tripResponse, nil
 }
