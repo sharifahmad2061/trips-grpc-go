@@ -23,9 +23,6 @@ import (
 )
 
 func main() {
-	//conf := config.Load()
-	//fmt.Println(conf)
-
 	// initialize telemetry here (tracing, metrics, etc.)
 	ctx := context.Background()
 	shutdown, err := telemetry.Init(ctx)
