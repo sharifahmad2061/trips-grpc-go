@@ -1,7 +1,7 @@
 -- name: GetTripByID :one
 SELECT *
 FROM trip.trip
-WHERE id = $1
+WHERE id = $1;
 
 -- name: CreateTrip :one
 INSERT INTO trip.trip (name, member_id, start_date, end_date)
