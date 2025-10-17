@@ -16,5 +16,6 @@ gen_proto:
 		--go-grpc_out=$(OUT_DIR) --go-grpc_opt=paths=source_relative \
 		$(PROTO_DIR)/*.proto
 
-.PHONY: build
-build: go build
+.PHONY: run
+run:
+	go run cmd/trips/main.go
