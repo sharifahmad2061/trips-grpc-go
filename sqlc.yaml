@@ -6,4 +6,4 @@ sql:
     gen:
       go:
         package: "queries"
-        out: "internal/db/service"
+        out: "internal/db/generated"
