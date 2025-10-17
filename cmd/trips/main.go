@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	apiv1 "github.com/sharifahmad2061/trip-grpc-go/api/gen/go"
+	"github.com/sharifahmad2061/trip-grpc-go/internal/db"
 	"github.com/sharifahmad2061/trip-grpc-go/internal/service"
 	"github.com/sharifahmad2061/trip-grpc-go/internal/telemetry"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -38,6 +39,14 @@ func main() {
 	grpclog.SetLoggerV2(zapgrpc.NewLogger(logger))
 	logger.Info("Logger initialized")
 
+	// db connection
+	db, err := db.Initialize(ctx)
+	if err != nil {
+		logger.Fatal("Failed to initialize database", zap.Error(err))
+		panic(err)
+	}
+	defer db.Close()
+
 	// network socket
 	socket, err := net.Listen("tcp", ":50051")
 	if err != nil {
@@ -47,7 +56,7 @@ func main() {
 	server := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 	)
-	apiv1.RegisterTripsServer(server, &service.TripsServiceImpl{})
+	apiv1.RegisterTripsServer(server, &service.TripsServiceImpl{Db: db})
 	reflection.Register(server)
 
 	// start runtime telemetry (memory, GC, etc.) collection
