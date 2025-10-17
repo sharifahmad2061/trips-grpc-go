@@ -10,7 +10,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func initialize(ctx context.Context) (*sql.DB, error) {
+func Initialize(ctx context.Context) (*sql.DB, error) {
 	conf := config.Load()
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s",
 		conf.Database.User,
