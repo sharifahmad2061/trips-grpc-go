@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 
 	apiv1 "github.com/sharifahmad2061/trip-grpc-go/api/gen/go"
 	queries "github.com/sharifahmad2061/trip-grpc-go/internal/db/generated"
@@ -11,16 +10,14 @@ import (
 
 type TripsServiceImpl struct {
 	apiv1.UnimplementedTripsServer
-	Db *sql.DB
+	Query *queries.Queries
 }
 
 func (s *TripsServiceImpl) CreateTrip(
 	ctx context.Context,
 	req *apiv1.CreateTripRequest,
 ) (*apiv1.CreateTripResponse, error) {
-	dbHandle := queries.New(s.Db)
-
-	trip, err := dbHandle.CreateTrip(ctx, queries.CreateTripParams{
+	trip, err := s.Query.CreateTrip(ctx, queries.CreateTripParams{
 		Name:      req.GetName(),
 		MemberID:  int64(req.GetMemberId()),
 		StartDate: req.GetStartDate().AsTime(),
@@ -50,9 +47,7 @@ func (s *TripsServiceImpl) GetTripById(
 	ctx context.Context,
 	req *apiv1.GetTripByIdRequest,
 ) (*apiv1.Trip, error) {
-	dbHandle := queries.New(s.Db)
-
-	trip, err := dbHandle.GetTripByID(ctx, int64(req.GetId()))
+	trip, err := s.Query.GetTripByID(ctx, int64(req.GetId()))
 	if err != nil {
 		return nil, err
 	}

@@ -10,6 +10,7 @@ import (
 
 	apiv1 "github.com/sharifahmad2061/trip-grpc-go/api/gen/go"
 	"github.com/sharifahmad2061/trip-grpc-go/internal/db"
+	queries "github.com/sharifahmad2061/trip-grpc-go/internal/db/generated"
 	"github.com/sharifahmad2061/trip-grpc-go/internal/service"
 	"github.com/sharifahmad2061/trip-grpc-go/internal/telemetry"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -56,7 +57,8 @@ func main() {
 	server := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 	)
-	apiv1.RegisterTripsServer(server, &service.TripsServiceImpl{Db: db})
+	query := queries.New(db)
+	apiv1.RegisterTripsServer(server, &service.TripsServiceImpl{Query: query})
 	reflection.Register(server)
 
 	// start runtime telemetry (memory, GC, etc.) collection
