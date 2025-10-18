@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"net"
 	"os"
 	"os/signal"
@@ -13,9 +13,12 @@ import (
 	queries "github.com/sharifahmad2061/trip-grpc-go/internal/db/generated"
 	"github.com/sharifahmad2061/trip-grpc-go/internal/service"
 	"github.com/sharifahmad2061/trip-grpc-go/internal/telemetry"
+	"go.opentelemetry.io/contrib/bridges/otelzap"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
+	"go.opentelemetry.io/otel/log/global"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zapgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
@@ -32,7 +35,12 @@ func main() {
 	defer shutdown()
 
 	// logger
-	logger, _ := zap.NewProduction()
+	lp := global.GetLoggerProvider()
+	core := zapcore.NewTee(
+		zapcore.NewCore(zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()), zapcore.AddSync(os.Stdout), zapcore.InfoLevel),
+		otelzap.NewCore("trip-grpc-go", otelzap.WithLoggerProvider(lp)),
+	)
+	logger := zap.New(core)
 	zap.ReplaceGlobals(logger)
 	grpclog.SetLoggerV2(zapgrpc.NewLogger(logger))
 	logger.Info("Logger initialized")
@@ -48,7 +56,7 @@ func main() {
 	// network socket
 	socket, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		logger.Fatal(fmt.Sprintf("failed to listen: %v", err))
 	}
 
 	server := grpc.NewServer(
@@ -62,17 +70,17 @@ func main() {
 	_ = runtime.Start()
 
 	go func() {
-		log.Println("gRPC server is running on port 50051")
+		logger.Info("gRPC server is running on port 50051")
 		if err := server.Serve(socket); err != nil {
-			log.Fatalf("failed to serve: %v", err)
+			logger.Fatal(fmt.Sprintf("failed to serve: %v", err))
 		}
-		log.Println("Server stopped serving")
+		logger.Info("Server stopped serving")
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutting down server...")
+	logger.Info("Shutting down server...")
 	server.GracefulStop()
-	log.Println("Server stopped")
+	logger.Info("Server stopped")
 }
