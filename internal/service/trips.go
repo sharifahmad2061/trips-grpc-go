@@ -5,6 +5,7 @@ import (
 
 	apiv1 "github.com/sharifahmad2061/trip-grpc-go/api/gen/go"
 	queries "github.com/sharifahmad2061/trip-grpc-go/internal/db/generated"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -40,6 +41,7 @@ func (s *TripsServiceImpl) CreateTrip(
 			Nanos:   int32(trip.EndDate.Nanosecond()),
 		},
 	}
+	zap.L().Info("Created trip successfully", zap.Uint64("trip_id", tripResponse.Id))
 	return &tripResponse, nil
 }
 
