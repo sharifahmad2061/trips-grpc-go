@@ -5,8 +5,11 @@ import (
 	"log"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/log/global"
+	sdklog "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
@@ -14,8 +17,10 @@ import (
 )
 
 func Init(ctx context.Context) (func(), error) {
-	rsc, err := resource.New(ctx,
-		resource.WithAttributes(
+	rsc, err := resource.Merge(
+		resource.Default(),
+		resource.NewWithAttributes(
+			semconv.SchemaURL,
 			semconv.ServiceNameKey.String("trip-grpc-go"),
 		),
 	)
@@ -39,6 +44,15 @@ func Init(ctx context.Context) (func(), error) {
 		return nil, err
 	}
 
+	le, err := otlploggrpc.New(ctx,
+		otlploggrpc.WithEndpoint("localhost:4317"),
+		otlploggrpc.WithInsecure(),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
 	tp := trace.NewTracerProvider(
 		trace.WithResource(rsc),
 		trace.WithBatcher(te),
@@ -51,12 +65,23 @@ func Init(ctx context.Context) (func(), error) {
 	)
 	otel.SetMeterProvider(mp)
 
+	lp := sdklog.NewLoggerProvider(
+		sdklog.WithResource(rsc),
+		sdklog.WithProcessor(
+			sdklog.NewBatchProcessor(le),
+		),
+	)
+	global.SetLoggerProvider(lp)
+
 	shutdown := func() {
 		if err := tp.Shutdown(ctx); err != nil {
 			log.Printf("Error shutting down tracer: %v", err)
 		}
 		if err := mp.Shutdown(ctx); err != nil {
 			log.Printf("Error shutting down meter: %v", err)
+		}
+		if err := lp.Shutdown(ctx); err != nil {
+			log.Printf("Error shutting down logger: %v", err)
 		}
 	}
 
