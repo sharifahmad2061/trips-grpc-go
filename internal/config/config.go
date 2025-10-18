@@ -1,11 +1,12 @@
 package config
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 type Config struct {
@@ -22,7 +23,7 @@ type Config struct {
 func Load() *Config {
 	wd, err := os.Getwd()
 	if err != nil {
-		log.Fatalf("Error getting executable path, %s", err)
+		zap.L().Fatal(fmt.Sprintf("Error getting executable path, %s", err))
 	}
 
 	projectRoot := findProjectRoot(wd)
@@ -33,11 +34,11 @@ func Load() *Config {
 	viper.AddConfigPath(configPath)
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Error reading config file, %s", err)
+		zap.L().Fatal(fmt.Sprintf("Error reading config file, %s", err))
 	}
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
-		log.Fatalf("Unable to decode into struct, %v", err)
+		zap.L().Fatal(fmt.Sprintf("Unable to decode into struct, %v", err))
 	}
 	return &config
 }
@@ -50,7 +51,7 @@ func findProjectRoot(startPath string) string {
 		}
 		parentDir := filepath.Dir(dir)
 		if parentDir == dir {
-			log.Fatal("Could not find project root with go.mod")
+			zap.L().Fatal("Could not find project root with go.mod")
 		}
 		dir = parentDir
 	}
