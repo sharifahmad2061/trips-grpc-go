@@ -17,6 +17,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
