@@ -21,6 +21,18 @@ services:
     networks:
       - otel
 
+  tempo:
+    image: images.agodadev.io/dockerhub/grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./config/tempo.yaml:/etc/tempo.yaml
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200"  # Tempo query port
+    restart: no
+    networks:
+      - otel
+
   grafana:
     image: images.agodadev.io/dockerhub/grafana/grafana:latest
     ports:
@@ -33,15 +45,17 @@ services:
       - otel
     depends_on:
       - prometheus
+      - tempo
+      - loki
 
-  jaeger:
-    image: images.agodadev.io/dockerhub/jaegertracing/all-in-one
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
-    ports:
-      - "16686:16686"
-    networks:
-      - otel
+#  jaeger:
+#    image: images.agodadev.io/dockerhub/jaegertracing/all-in-one
+#    environment:
+#      - COLLECTOR_OTLP_ENABLED=true
+#    ports:
+#      - "16686:16686"
+#    networks:
+#      - otel
 
   loki:
     image: images.agodadev.io/dockerhub/grafana/loki:3.1.1
@@ -61,3 +75,4 @@ networks:
 volumes:
   grafana-storage:
   loki-data:
+  tempo-data:
