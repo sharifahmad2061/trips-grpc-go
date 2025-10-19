@@ -41,7 +41,7 @@ func (s *TripsServiceImpl) CreateTrip(
 			Nanos:   int32(trip.EndDate.Nanosecond()),
 		},
 	}
-	zap.L().Info("Created trip successfully", zap.Uint64("trip_id", tripResponse.Id))
+	zap.L().Info("Created trip successfully", zap.Reflect("context", ctx))
 	return &tripResponse, nil
 }
 
