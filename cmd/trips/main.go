@@ -19,6 +19,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel/log/global"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zapgrpc"
@@ -63,6 +64,15 @@ func main() {
 
 	loggingOptions := []logging.Option{
 		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
+		logging.WithFieldsFromContext(func(ctx context.Context) logging.Fields {
+			if span := trace.SpanFromContext(ctx); span.SpanContext().IsValid() {
+				return logging.Fields{
+					"trace_id", span.SpanContext().TraceID().String(),
+					"span_id", span.SpanContext().SpanID().String(),
+				}
+			}
+			return nil
+		}),
 	}
 
 	server := grpc.NewServer(
