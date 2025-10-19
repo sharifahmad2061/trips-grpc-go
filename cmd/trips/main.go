@@ -8,11 +8,13 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	apiv1 "github.com/sharifahmad2061/trip-grpc-go/api/gen/go"
 	"github.com/sharifahmad2061/trip-grpc-go/internal/db"
 	queries "github.com/sharifahmad2061/trip-grpc-go/internal/db/generated"
 	"github.com/sharifahmad2061/trip-grpc-go/internal/service"
 	"github.com/sharifahmad2061/trip-grpc-go/internal/telemetry"
+	zapinterceptor "github.com/sharifahmad2061/trip-grpc-go/pkgs/zap"
 	"go.opentelemetry.io/contrib/bridges/otelzap"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
@@ -59,8 +61,15 @@ func main() {
 		logger.Fatal(fmt.Sprintf("failed to listen: %v", err))
 	}
 
+	loggingOptions := []logging.Option{
+		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall),
+	}
+
 	server := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		grpc.ChainUnaryInterceptor(
+			logging.UnaryServerInterceptor(zapinterceptor.InterceptorLogger(logger), loggingOptions...),
+		),
 	)
 	query := queries.New(db)
 	apiv1.RegisterTripsServer(server, &service.TripsServiceImpl{Query: query})
